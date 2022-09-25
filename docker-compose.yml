@@ -93,8 +93,10 @@ services:
   # guacd
   guacd:
     container_name: guacd_compose
-    image: guacamole/guacd
+    image: lscr.io/linuxserver/guacd:latest #guacamole/guacd
     network_mode: host # connect to host to allow WOL to work
+    #ports:
+    #  - 4822:4822
     restart: always
     volumes:
     - ./drive:/drive:rw
