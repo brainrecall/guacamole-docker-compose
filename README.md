@@ -38,7 +38,7 @@ networks:
 
 ### Services
 #### guacd
-The following part of docker-compose.yml will create the guacd service. guacd is the heart of Guacamole which dynamically loads support for remote desktop protocols (called "client plugins") and connects them to remote desktops based on instructions received from the web application. The container will be called `guacd_compose` based on the docker image `guacamole/guacd` connected to our previously created network `guacnetwork_compose`. Additionally we map the 2 local folders `./drive` and `./record` into the container. We can use them later to map user drives and store recordings of sessions.
+The following part of docker-compose.yml will create the guacd service. guacd is the heart of Guacamole which dynamically loads support for remote desktop protocols (called "client plugins") and connects them to remote desktops based on instructions received from the web application. The container will be called `guacd_compose` based on the docker image `guacamole/guacd` connected to the host network to allow low-level functionality (WOL). Additionally we map the 2 local folders `./drive` and `./record` into the container. We can use them later to map user drives and store recordings of sessions.
 
 ~~~python
 ...
@@ -47,8 +47,7 @@ services:
   guacd:
     container_name: guacd_compose
     image: guacamole/guacd
-    networks:
-      guacnetwork_compose:
+    network_mode: host
     restart: always
     volumes:
     - ./drive:/drive:rw
@@ -88,8 +87,10 @@ The following part of docker-compose.yml will create an instance of guacamole by
     depends_on:
     - guacd
     - postgres
+    extra_hosts:
+    - host.docker.internal:host-gateway
     environment:
-      GUACD_HOSTNAME: guacd
+      GUACD_HOSTNAME: host.docker.internal
       POSTGRES_DATABASE: guacamole_db
       POSTGRES_HOSTNAME: postgres
       POSTGRES_PASSWORD: ChooseYourOwnPasswordHere1234
@@ -147,7 +148,7 @@ To reset everything to the beginning, just run `./reset.sh`.
 
 ## WOL
 
-Wake on LAN (WOL) does not work and I will not fix that because it is beyound the scope of this repo. But [zukkie777](https://github.com/zukkie777) who also filed [this issue](https://github.com/boschkundendienst/guacamole-docker-compose/issues/12) fixed it. You can read about it on the [Guacamole mailing list](http://apache-guacamole-general-user-mailing-list.2363388.n4.nabble.com/How-to-docker-composer-for-WOL-td9164.html)
+Wake on LAN (WOL) is functional thanks to `guacd` being connected to the host network. Note that port 4822 must be available on the host and host networking is only available on Linux.
 
 **Disclaimer**
 
